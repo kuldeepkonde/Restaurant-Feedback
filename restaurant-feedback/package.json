@@ -1,0 +1,13 @@
+{
+  "name": "restaurant-feedback",
+  "version": "1.0.0",
+  "description": "QR-code customer feedback with AI-suggested reviews and an admin dashboard. Zero dependencies.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}

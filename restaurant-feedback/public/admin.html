@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Feedback Dashboard</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+<style>
+  :root {
+    --bg: #f6f4f1; --card: #fff; --ink: #1c1917; --muted: #78716c; --line: #e7e2dc;
+    --accent: #c2410c; --pos: #15803d; --neu: #a8a29e; --neg: #dc2626; --star: #f59e0b; --soft: #fdeee4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #141210; --card: #1e1b18; --ink: #f5f0ea; --muted: #a39a90; --line: #36302a;
+            --accent: #f97316; --pos: #22c55e; --neu: #6b635b; --neg: #f87171; --soft: #3a2415; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Devanagari", sans-serif; background: var(--bg); color: var(--ink); line-height: 1.45; }
+  button, input, select { font: inherit; color: inherit; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 16px; }
+  .top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+  .top h1 { font-size: 1.25rem; margin: 0; }
+  .top .sub { color: var(--muted); font-size: .85rem; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .btn { border: 1px solid var(--line); background: var(--card); border-radius: 10px; padding: 8px 12px; cursor: pointer; font-size: .9rem; }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  select { border: 1px solid var(--line); background: var(--card); border-radius: 10px; padding: 8px 10px; }
+
+  .grid { display: grid; gap: 14px; }
+  .kpis { grid-template-columns: repeat(4, 1fr); }
+  .two { grid-template-columns: 1fr 1fr; }
+  .main { grid-template-columns: 1.6fr 1fr; align-items: start; }
+  @media (max-width: 860px) { .kpis { grid-template-columns: 1fr 1fr; } .two, .main { grid-template-columns: 1fr; } }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  .card h2 { font-size: .95rem; margin: 0 0 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .card h2 small { font-weight: 400; color: var(--muted); font-size: .8rem; }
+  .kpi .label { color: var(--muted); font-size: .8rem; }
+  .kpi .value { font-size: 2rem; font-weight: 700; line-height: 1.15; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .kpi .hint { color: var(--muted); font-size: .8rem; margin-top: 2px; }
+  .stars { color: var(--star); letter-spacing: 1px; }
+  .stars .off { color: var(--line); }
+
+  .sentbar { display: flex; height: 14px; border-radius: 99px; overflow: hidden; background: var(--line); gap: 2px; }
+  .sentbar div { height: 100%; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; font-size: .85rem; color: var(--muted); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+  .dist { display: grid; gap: 6px; }
+  .dist .r { display: grid; grid-template-columns: 34px 1fr 42px; gap: 8px; align-items: center; font-size: .85rem; font-variant-numeric: tabular-nums; }
+  .dist .track { height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; }
+  .dist .fill { height: 100%; background: var(--star); border-radius: 99px; }
+  .dist .n { text-align: right; color: var(--muted); }
+
+  .trend { display: flex; align-items: flex-end; gap: 4px; height: 120px; padding-top: 8px; }
+  .trend .col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; min-width: 0; }
+  .trend .bar { width: 100%; max-width: 28px; border-radius: 4px 4px 0 0; min-height: 2px; }
+  .trend .d { font-size: .65rem; color: var(--muted); margin-top: 4px; white-space: nowrap; }
+  .empty { color: var(--muted); font-size: .9rem; padding: 18px 0; text-align: center; }
+
+  .fb { border-top: 1px solid var(--line); padding: 12px 0; }
+  .fb:first-child { border-top: 0; padding-top: 0; }
+  .fb .meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: .78rem; color: var(--muted); margin-bottom: 4px; }
+  .fb .text { font-size: .95rem; white-space: pre-wrap; word-break: break-word; }
+  .tag { border: 1px solid var(--line); border-radius: 99px; padding: 1px 8px; font-size: .72rem; }
+  .tag.neg { color: var(--neg); border-color: var(--neg); }
+  .fb.low { background: linear-gradient(90deg, color-mix(in srgb, var(--neg) 8%, transparent), transparent 60%); margin: 0 -16px; padding-left: 16px; padding-right: 16px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 7px 4px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 500; font-size: .78rem; }
+  td.num, th.num { text-align: right; }
+
+  .qr-controls { display: grid; gap: 10px; }
+  .qr-controls label { font-size: .8rem; color: var(--muted); display: block; margin-bottom: 4px; }
+  .qr-controls input { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 9px 12px; }
+  .qr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-top: 14px; }
+  .qr-card { border: 1px dashed var(--line); border-radius: 12px; padding: 12px; text-align: center; background: #fff; color: #111; }
+  .qr-card svg { width: 100%; height: auto; display: block; }
+  .qr-card .q1 { font-weight: 700; font-size: .9rem; margin-top: 6px; }
+  .qr-card .q2 { font-size: .72rem; color: #555; }
+
+  .login { position: fixed; inset: 0; display: grid; place-items: center; background: var(--bg); padding: 16px; z-index: 10; }
+  .login form { width: 100%; max-width: 340px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 24px; }
+  .login h1 { font-size: 1.2rem; margin: 0 0 4px; }
+  .login p { color: var(--muted); margin: 0 0 16px; font-size: .9rem; }
+  .login input { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+  .login .btn { width: 100%; padding: 12px; }
+  .login .err { color: var(--neg); font-size: .85rem; min-height: 1.2em; margin-top: 8px; }
+  .hidden { display: none !important; }
+  .pill { font-size: .75rem; border-radius: 99px; padding: 2px 10px; border: 1px solid var(--line); color: var(--muted); }
+  .pill.on { color: var(--pos); border-color: var(--pos); }
+
+  @media print {
+    body * { visibility: hidden; }
+    #qrGrid, #qrGrid * { visibility: visible; }
+    #qrGrid { position: absolute; left: 0; top: 0; width: 100%; grid-template-columns: repeat(3, 1fr); gap: 10mm; }
+    .qr-card { border: 1px dashed #999; break-inside: avoid; padding: 6mm; }
+  }
+</style>
+</head>
+<body>
+
+<div class="login" id="login">
+  <form id="loginForm">
+    <h1>Feedback dashboard</h1>
+    <p>Enter the admin password (ADMIN_PASSWORD in your .env file).</p>
+    <input type="password" id="pw" placeholder="Password" autocomplete="current-password" required>
+    <button class="btn primary" type="submit">Open dashboard</button>
+    <div class="err" id="loginErr"></div>
+  </form>
+</div>
+
+<div class="wrap hidden" id="app">
+  <div class="top">
+    <div>
+      <h1 id="name">Dashboard</h1>
+      <div class="sub">Customer feedback · <span id="updated"></span> <span class="pill" id="aiPill"></span></div>
+    </div>
+    <div class="actions">
+      <select id="period" aria-label="Period">
+        <option value="1">Today (24h)</option>
+        <option value="7">Last 7 days</option>
+        <option value="30" selected>Last 30 days</option>
+        <option value="">All time</option>
+      </select>
+      <button class="btn" id="refresh">↻ Refresh</button>
+      <button class="btn" id="export">⬇ Export CSV</button>
+      <button class="btn" id="logout">Log out</button>
+    </div>
+  </div>
+
+  <div class="grid kpis">
+    <div class="card kpi"><div class="label">Average rating</div><div class="value" id="kAvg">–</div><div class="hint stars" id="kAvgStars"></div></div>
+    <div class="card kpi"><div class="label">Total reviews</div><div class="value" id="kTotal">–</div><div class="hint" id="kTotalHint"></div></div>
+    <div class="card kpi"><div class="label">Positive (4–5★)</div><div class="value" id="kPos" style="color:var(--pos)">–</div><div class="hint" id="kPosHint"></div></div>
+    <div class="card kpi"><div class="label">Negative (1–2★)</div><div class="value" id="kNeg" style="color:var(--neg)">–</div><div class="hint" id="kNegHint"></div></div>
+  </div>
+
+  <div class="grid two" style="margin-top:14px">
+    <div class="card">
+      <h2>Positive vs negative <small id="ratio"></small></h2>
+      <div class="sentbar" id="sentbar"></div>
+      <div class="legend">
+        <span><i style="background:var(--pos)"></i>Positive <b id="lPos"></b></span>
+        <span><i style="background:var(--neu)"></i>Neutral <b id="lNeu"></b></span>
+        <span><i style="background:var(--neg)"></i>Negative <b id="lNeg"></b></span>
+      </div>
+      <h2 style="margin-top:20px">Rating breakdown</h2>
+      <div class="dist" id="dist"></div>
+    </div>
+    <div class="card">
+      <h2>Last 14 days <small>bar height = reviews · colour = avg rating</small></h2>
+      <div class="trend" id="trend"></div>
+      <div class="legend" id="sources"></div>
+    </div>
+  </div>
+
+  <div class="grid main" style="margin-top:14px">
+    <div class="card">
+      <h2>Latest feedback
+        <select id="ratingFilter" aria-label="Filter by rating" style="padding:4px 8px;font-size:.82rem">
+          <option value="">All ratings</option>
+          <option value="5">5★ only</option><option value="4">4★ only</option><option value="3">3★ only</option>
+          <option value="2">2★ only</option><option value="1">1★ only</option>
+        </select>
+      </h2>
+      <div id="list"></div>
+      <button class="btn hidden" id="more" style="width:100%;margin-top:10px">Load more</button>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h2>By table <small>all time</small></h2>
+        <div id="tables"></div>
+      </div>
+      <div class="card">
+        <h2>QR codes</h2>
+        <div class="qr-controls">
+          <div><label for="qrBase">Feedback page address</label><input id="qrBase" placeholder="https://your-domain.com"></div>
+          <div><label for="qrList">Tables / sections (e.g. 1-12, entrance, bill)</label><input id="qrList" value="1-8, entrance, bill"></div>
+          <div style="display:flex;gap:8px"><button class="btn primary" id="qrMake" style="flex:1">Generate</button><button class="btn" id="qrPrint" style="flex:1">🖨 Print</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px" id="qrSection">
+    <h2>Printable QR cards <small>scan to test · each card links to its own table</small></h2>
+    <div class="qr-grid" id="qrGrid"></div>
+  </div>
+</div>
+
+<script src="/qr.js"></script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const store = {
+    get: (k) => { try { return sessionStorage.getItem(k) || ''; } catch { return ''; } },
+    set: (k, v) => { try { v ? sessionStorage.setItem(k, v) : sessionStorage.removeItem(k); } catch {} },
+  };
+  let key = store.get('fb_admin');
+  let config = {};
+  let offset = 0;
+  const PAGE = 15;
+
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const starStr = (n) => '★'.repeat(n) + `<span class="off">${'★'.repeat(5 - n)}</span>`;
+  const fmtTime = (iso) => new Date(iso).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+  const ratingColor = (avg) => avg >= 4 ? 'var(--pos)' : avg >= 3 ? 'var(--star)' : 'var(--neg)';
+
+  async function api(path) {
+    const r = await fetch(path, { headers: { 'X-Admin-Key': key } });
+    if (r.status === 401 || r.status === 429) {
+      const e = await r.json().catch(() => ({}));
+      logout(e.error || 'Wrong password');
+      throw new Error('unauthorised');
+    }
+    if (!r.ok) throw new Error('Request failed');
+    return r;
+  }
+  const filters = () => {
+    const p = new URLSearchParams();
+    if ($('period').value) p.set('days', $('period').value);
+    return p;
+  };
+
+  // ---------- stats ----------
+  async function loadStats() {
+    const s = await (await api('/api/admin/stats?' + filters())).json();
+    $('kAvg').textContent = s.total ? s.average.toFixed(1) : '–';
+    $('kAvgStars').innerHTML = s.total ? starStr(Math.round(s.average)) : '<span class="off">★★★★★</span>';
+    $('kTotal').textContent = s.total.toLocaleString();
+    $('kTotalHint').textContent = $('period').selectedOptions[0].text.toLowerCase();
+    $('kPos').textContent = s.total ? s.positivePct + '%' : '–';
+    $('kPosHint').textContent = `${s.positive} reviews`;
+    $('kNeg').textContent = s.total ? s.negativePct + '%' : '–';
+    $('kNegHint').textContent = `${s.negative} reviews`;
+
+    const pct = (n) => (s.total ? (n / s.total) * 100 : 0);
+    $('sentbar').innerHTML = s.total
+      ? `<div style="width:${pct(s.positive)}%;background:var(--pos)"></div><div style="width:${pct(s.neutral)}%;background:var(--neu)"></div><div style="width:${pct(s.negative)}%;background:var(--neg)"></div>`
+      : '';
+    $('lPos').textContent = s.positive; $('lNeu').textContent = s.neutral; $('lNeg').textContent = s.negative;
+    $('ratio').textContent = s.negative ? `${(s.positive / s.negative).toFixed(1)} : 1 positive-to-negative` : s.positive ? 'no negative reviews 🎉' : '';
+
+    const max = Math.max(1, ...Object.values(s.distribution));
+    $('dist').innerHTML = [5, 4, 3, 2, 1].map((r) =>
+      `<div class="r"><span>${r}★</span><div class="track"><div class="fill" style="width:${(s.distribution[r] / max) * 100}%;background:${r >= 4 ? 'var(--pos)' : r === 3 ? 'var(--neu)' : 'var(--neg)'}"></div></div><span class="n">${s.distribution[r]}</span></div>`
+    ).join('');
+
+    // 14-day trend, filling in empty days
+    const byDay = Object.fromEntries(s.trend.map((t) => [t.day, t]));
+    const days = [];
+    const nowLocal = Date.now() + (s.tzOffsetMinutes || 0) * 60000;
+    for (let i = 13; i >= 0; i--) days.push(new Date(nowLocal - i * 864e5).toISOString().slice(0, 10));
+    const tmax = Math.max(1, ...s.trend.map((t) => t.count));
+    $('trend').innerHTML = s.trend.length ? days.map((d, i) => {
+      const t = byDay[d];
+      const h = t ? Math.max(4, (t.count / tmax) * 100) : 2;
+      const label = new Date(d + 'T12:00:00Z').toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+      return `<div class="col" title="${label}: ${t ? `${t.count} reviews, avg ${t.average}★` : 'no reviews'}">
+        <div class="bar" style="height:${h}%;background:${t ? ratingColor(t.average) : 'var(--line)'}"></div>
+        <div class="d">${i % 2 === 1 ? '' : label}</div></div>`;
+    }).join('') : '<div class="empty" style="width:100%">No reviews in the last 14 days yet.</div>';
+
+    const src = s.sources;
+    $('sources').innerHTML = s.total
+      ? `<span>✨ AI suggestion used as-is: <b>${src.ai}</b></span><span>✏️ AI edited: <b>${src.aiEdited}</b></span><span>⌨️ Written by customer: <b>${src.custom}</b></span>`
+      : '';
+
+    $('tables').innerHTML = s.tables.length
+      ? `<table><thead><tr><th>Table</th><th class="num">Reviews</th><th class="num">Avg</th></tr></thead><tbody>${
+          s.tables.map((t) => `<tr><td>${esc(t.table_no)}</td><td class="num">${t.count}</td><td class="num" style="color:${ratingColor(t.average)}">${t.average.toFixed(1)}★</td></tr>`).join('')
+        }</tbody></table>`
+      : '<div class="empty">No table data yet. Print table QR codes below.</div>';
+
+    $('aiPill').textContent = s.aiEnabled ? 'AI on' : 'AI off (templates)';
+    $('aiPill').className = 'pill' + (s.aiEnabled ? ' on' : '');
+    $('updated').textContent = 'updated ' + new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  }
+
+  // ---------- list ----------
+  async function loadList(reset = true) {
+    if (reset) offset = 0;
+    const p = filters();
+    if ($('ratingFilter').value) p.set('rating', $('ratingFilter').value);
+    p.set('limit', PAGE); p.set('offset', offset);
+    const { rows, total } = await (await api('/api/admin/feedback?' + p)).json();
+    const SRC = { ai: 'AI suggestion', ai_edited: 'AI, edited', custom: 'Own words' };
+    const html = rows.map((r) => `
+      <div class="fb ${r.rating <= 2 ? 'low' : ''}">
+        <div class="meta">
+          <span class="stars">${starStr(r.rating)}</span>
+          <span>${fmtTime(r.created_at)}</span>
+          ${r.table_no ? `<span class="tag">${/^\d+$/.test(r.table_no) ? 'Table ' : ''}${esc(r.table_no)}</span>` : ''}
+          ${r.order_id ? `<span class="tag">Order ${esc(r.order_id)}</span>` : ''}
+          <span class="tag ${r.rating <= 2 ? 'neg' : ''}">${SRC[r.source] || r.source}</span>
+        </div>
+        <div class="text">${esc(r.feedback_text)}</div>
+      </div>`).join('');
+    $('list').innerHTML = reset ? (html || '<div class="empty">No feedback for this filter yet.</div>') : $('list').innerHTML + html;
+    offset += rows.length;
+    $('more').classList.toggle('hidden', offset >= total);
+  }
+
+  const loadAll = () => Promise.all([loadStats(), loadList()]).catch((e) => e.message !== 'unauthorised' && console.error(e));
+
+  // ---------- QR codes ----------
+  function expand(list) {
+    const out = [];
+    for (const part of list.split(',').map((s) => s.trim()).filter(Boolean)) {
+      const m = part.match(/^(\d+)\s*-\s*(\d+)$/);
+      if (m) { for (let i = +m[1]; i <= Math.min(+m[2], +m[1] + 199); i++) out.push(String(i)); }
+      else out.push(part.slice(0, 20));
+    }
+    return [...new Set(out)];
+  }
+  function makeQRs() {
+    const base = ($('qrBase').value.trim() || location.origin).replace(/\/$/, '');
+    const labels = expand($('qrList').value);
+    $('qrGrid').innerHTML = labels.map((l) => {
+      const url = `${base}/?table=${encodeURIComponent(l)}`;
+      const title = /^\d+$/.test(l) ? `Table ${l}` : l.charAt(0).toUpperCase() + l.slice(1);
+      return `<div class="qr-card">${QR.toSvg(url, { border: 2 })}<div class="q1">${esc(title)}</div><div class="q2">Scan to rate us ⭐ · ${esc(config.restaurantName || '')}</div></div>`;
+    }).join('');
+  }
+
+  // ---------- auth ----------
+  function logout(msg) {
+    key = ''; store.set('fb_admin', '');
+    $('app').classList.add('hidden'); $('login').classList.remove('hidden');
+    $('loginErr').textContent = msg || '';
+  }
+  $('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    key = $('pw').value;
+    $('loginErr').textContent = '';
+    try { await start(); } catch {}
+  });
+
+  async function start() {
+    await loadStats();              // throws + shows error on a wrong password
+    store.set('fb_admin', key);
+    $('login').classList.add('hidden'); $('app').classList.remove('hidden');
+    config = await (await fetch('/api/config')).json();
+    $('name').textContent = config.restaurantName;
+    document.title = `${config.restaurantName} · Feedback dashboard`;
+    if (!$('qrBase').value) $('qrBase').value = config.publicUrl || location.origin;
+    makeQRs();
+    await loadList();
+  }
+
+  $('refresh').onclick = loadAll;
+  $('period').onchange = loadAll;
+  $('ratingFilter').onchange = () => loadList();
+  $('more').onclick = () => loadList(false);
+  $('logout').onclick = () => logout();
+  $('qrMake').onclick = makeQRs;
+  $('qrPrint').onclick = () => { makeQRs(); window.print(); };
+  $('export').onclick = async () => {
+    const blob = await (await api('/api/admin/export.csv?' + filters())).blob();
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `feedback-${new Date().toISOString().slice(0, 10)}.csv` });
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  setInterval(() => { if (key && !document.hidden) loadAll(); }, 30000);
+
+  if (key) start().catch(() => {});
+})();
+</script>
+</body>
+</html>

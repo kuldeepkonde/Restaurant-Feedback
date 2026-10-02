@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f1a17">
+<title>Share your feedback</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⭐</text></svg>">
+<style>
+  :root {
+    --bg: #faf6f0; --card: #ffffff; --ink: #1f1a17; --muted: #756b62; --line: #eadfd2;
+    --accent: #c2410c; --accent-ink: #ffffff; --accent-soft: #fdeee4;
+    --star: #f59e0b; --star-off: #e7dccf; --ok: #15803d; --radius: 16px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #16120f; --card: #211b17; --ink: #f5ede4; --muted: #a8998b; --line: #3a302a;
+            --accent: #f97316; --accent-ink: #1b0f06; --accent-soft: #3a2415; --star-off: #3f352e; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Devanagari", sans-serif;
+    background: var(--bg); color: var(--ink); line-height: 1.45;
+    -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 16px 16px calc(24px + env(safe-area-inset-bottom)); }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 0 16px; }
+  .brand { font-weight: 700; font-size: 1.05rem; letter-spacing: .2px; }
+  .table { font-size: .78rem; color: var(--muted); }
+  .langs { display: flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; flex-shrink: 0; }
+  .langs button { border: 0; background: none; color: var(--muted); font: inherit; font-size: .8rem; padding: 6px 10px; cursor: pointer; }
+  .langs button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 18px; margin-bottom: 14px; }
+  h1 { font-size: 1.45rem; line-height: 1.25; margin: 0 0 6px; text-align: center; }
+  .sub { color: var(--muted); text-align: center; margin: 0 0 18px; font-size: .95rem; }
+  h2 { font-size: .95rem; margin: 0 0 10px; }
+  h2 small { font-weight: 400; color: var(--muted); }
+
+  .stars { display: flex; justify-content: center; gap: 6px; }
+  .star { border: 0; background: none; padding: 4px; cursor: pointer; line-height: 0; transition: transform .12s; }
+  .star svg { width: 48px; height: 48px; fill: var(--star-off); transition: fill .15s; }
+  .star.on svg { fill: var(--star); }
+  .star:active { transform: scale(.9); }
+  .star:focus-visible { outline: 2px solid var(--accent); border-radius: 8px; }
+  .rating-label { text-align: center; min-height: 1.5em; margin-top: 8px; font-weight: 600; color: var(--accent); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 8px 14px; font: inherit; font-size: .9rem; cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+  .suggestions { display: grid; gap: 8px; }
+  .sug { text-align: left; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 12px; padding: 12px 14px; font: inherit; font-size: .95rem; cursor: pointer; transition: border-color .15s, background .15s; }
+  .sug:hover { border-color: var(--accent); }
+  .sug[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+  .sk { height: 58px; border-radius: 12px; background: linear-gradient(90deg, var(--line) 0%, var(--bg) 50%, var(--line) 100%); background-size: 200% 100%; animation: sh 1.1s infinite linear; }
+  @keyframes sh { to { background-position: -200% 0; } }
+  .row { display: flex; justify-content: space-between; align-items: center; margin: 10px 0 0; }
+  .link { border: 0; background: none; color: var(--accent); font: inherit; font-size: .88rem; font-weight: 600; cursor: pointer; padding: 6px 0; }
+  .ai-tag { font-size: .75rem; color: var(--muted); }
+
+  label.lbl { display: block; font-weight: 600; font-size: .95rem; margin: 18px 0 8px; }
+  textarea, input[type=text] { width: 100%; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--ink); font: inherit; font-size: 1rem; padding: 12px 14px; }
+  textarea { min-height: 110px; resize: vertical; }
+  textarea:focus, input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+  .count { text-align: right; font-size: .75rem; color: var(--muted); margin-top: 4px; }
+  details { margin-top: 10px; } summary { cursor: pointer; color: var(--muted); font-size: .9rem; padding: 4px 0; }
+  details input { margin-top: 8px; }
+
+  .btn { display: block; width: 100%; border: 0; border-radius: 14px; background: var(--accent); color: var(--accent-ink); font: inherit; font-size: 1.05rem; font-weight: 700; padding: 16px; margin-top: 18px; cursor: pointer; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn.ghost { background: none; color: var(--accent); border: 1.5px solid var(--accent); }
+  .err { color: #dc2626; font-size: .9rem; margin-top: 10px; min-height: 1.2em; text-align: center; }
+
+  .hidden { display: none !important; }
+  .fade { animation: fade .25s ease-out; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .thanks { text-align: center; padding: 34px 18px; }
+  .thanks .big { font-size: 3rem; line-height: 1; margin-bottom: 12px; }
+  .thanks p { color: var(--muted); margin: 8px 0 0; }
+  footer { text-align: center; color: var(--muted); font-size: .75rem; margin-top: 18px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="brand" id="brand">&nbsp;</div>
+      <div class="table" id="tableTag"></div>
+    </div>
+    <div class="langs" role="group" aria-label="Language">
+      <button data-lang="en" aria-pressed="true">EN</button>
+      <button data-lang="hi" aria-pressed="false">हिं</button>
+      <button data-lang="mr" aria-pressed="false">मरा</button>
+    </div>
+  </header>
+
+  <main id="form">
+    <section class="card">
+      <h1 id="t_title"></h1>
+      <p class="sub" id="t_sub"></p>
+      <div class="stars" id="stars" role="radiogroup"></div>
+      <div class="rating-label" id="ratingLabel" aria-live="polite"></div>
+    </section>
+
+    <section class="card hidden" id="step2">
+      <h2 id="t_aspects"></h2>
+      <div class="chips" id="chips"></div>
+
+      <h2 style="margin-top:22px" id="t_pick"></h2>
+      <div class="suggestions" id="suggestions" aria-live="polite"></div>
+      <div class="row">
+        <button class="link" id="more" type="button"></button>
+        <span class="ai-tag" id="aiTag"></span>
+      </div>
+
+      <label class="lbl" for="text" id="t_your"></label>
+      <textarea id="text" maxlength="1000"></textarea>
+      <div class="count"><span id="count">0</span>/1000</div>
+
+      <details>
+        <summary id="t_order"></summary>
+        <input type="text" id="orderId" maxlength="40" autocomplete="off">
+      </details>
+
+      <button class="btn" id="submit" type="button" disabled></button>
+      <div class="err" id="err" role="alert"></div>
+    </section>
+  </main>
+
+  <section class="card thanks hidden" id="done">
+    <div class="big" id="doneIcon">🙏</div>
+    <h1 id="t_thanks"></h1>
+    <p id="t_thanksMsg"></p>
+    <div id="googleBox" class="hidden">
+      <button class="btn" id="googleBtn" type="button"></button>
+      <p style="font-size:.8rem" id="t_googleHint"></p>
+    </div>
+  </section>
+
+  <footer id="t_footer"></footer>
+</div>
+
+<script>
+(() => {
+  const I18N = {
+    en: {
+      title: 'How was your experience today?', sub: 'Tap a star — it takes 10 seconds.',
+      labels: ['', 'Very poor', 'Poor', 'Okay', 'Good', 'Excellent!'],
+      aspects: 'What stood out?', aspectsHint: '(optional)',
+      aspectNames: { food: 'Food', service: 'Service', ambiance: 'Ambiance', value: 'Value for money', speed: 'Speed', cleanliness: 'Cleanliness' },
+      pick: 'Pick a suggestion', pickHint: '(or write your own below)', more: '↻ More ideas',
+      your: 'Your feedback', placeholder: 'Tap a suggestion above, edit it, or write your own…',
+      order: 'Add order / bill number (optional)', orderPh: 'e.g. 1042',
+      submit: 'Submit feedback', sending: 'Sending…', table: 'Table',
+      thanks: 'Thank you!', thanksHigh: 'We are so glad you enjoyed it. See you again soon!',
+      thanksMid: 'Thanks for the honest feedback — it helps us get better.',
+      thanksLow: 'We are sorry we let you down. The manager will personally review your feedback.',
+      google: 'Also share on Google', googleHint: 'Your review is copied — just paste it on the Google page.',
+      footer: 'No login needed · Your feedback goes straight to the owner',
+      errRating: 'Please tap a star rating.', errText: 'Please pick or write a few words.', errNet: 'Could not send. Please check your connection and try again.',
+      aiBy: '✨ AI suggestions',
+    },
+    hi: {
+      title: 'आज आपका अनुभव कैसा रहा?', sub: 'एक स्टार पर टैप करें — सिर्फ़ 10 सेकंड।',
+      labels: ['', 'बहुत खराब', 'खराब', 'ठीक-ठाक', 'अच्छा', 'बहुत बढ़िया!'],
+      aspects: 'क्या ख़ास लगा?', aspectsHint: '(वैकल्पिक)',
+      aspectNames: { food: 'खाना', service: 'सर्विस', ambiance: 'माहौल', value: 'दाम', speed: 'रफ़्तार', cleanliness: 'साफ़-सफ़ाई' },
+      pick: 'एक सुझाव चुनें', pickHint: '(या नीचे खुद लिखें)', more: '↻ और सुझाव',
+      your: 'आपका फ़ीडबैक', placeholder: 'ऊपर से सुझाव चुनें, बदलें, या खुद लिखें…',
+      order: 'ऑर्डर / बिल नंबर जोड़ें (वैकल्पिक)', orderPh: 'जैसे 1042',
+      submit: 'फ़ीडबैक भेजें', sending: 'भेज रहे हैं…', table: 'टेबल',
+      thanks: 'धन्यवाद!', thanksHigh: 'हमें खुशी है कि आपको पसंद आया। फिर मिलेंगे!',
+      thanksMid: 'ईमानदार फ़ीडबैक के लिए धन्यवाद — इससे हम बेहतर बनते हैं।',
+      thanksLow: 'हमें खेद है। मैनेजर खुद आपका फ़ीडबैक देखेंगे।',
+      google: 'Google पर भी शेयर करें', googleHint: 'आपका रिव्यू कॉपी हो गया है — बस Google पेज पर पेस्ट करें।',
+      footer: 'लॉगिन की ज़रूरत नहीं · आपका फ़ीडबैक सीधे मालिक तक जाता है',
+      errRating: 'कृपया स्टार रेटिंग चुनें।', errText: 'कृपया कुछ शब्द चुनें या लिखें।', errNet: 'भेजा नहीं जा सका। कृपया फिर कोशिश करें।',
+      aiBy: '✨ AI सुझाव',
+    },
+    mr: {
+      title: 'आजचा अनुभव कसा होता?', sub: 'एका स्टारवर टॅप करा — फक्त १० सेकंद.',
+      labels: ['', 'खूप वाईट', 'वाईट', 'ठीक', 'छान', 'अप्रतिम!'],
+      aspects: 'काय विशेष वाटलं?', aspectsHint: '(ऐच्छिक)',
+      aspectNames: { food: 'जेवण', service: 'सेवा', ambiance: 'वातावरण', value: 'किंमत', speed: 'वेग', cleanliness: 'स्वच्छता' },
+      pick: 'एक सूचना निवडा', pickHint: '(किंवा खाली स्वतः लिहा)', more: '↻ अजून सूचना',
+      your: 'तुमचा अभिप्राय', placeholder: 'वरून सूचना निवडा, बदला किंवा स्वतः लिहा…',
+      order: 'ऑर्डर / बिल क्रमांक जोडा (ऐच्छिक)', orderPh: 'उदा. 1042',
+      submit: 'अभिप्राय पाठवा', sending: 'पाठवत आहे…', table: 'टेबल',
+      thanks: 'धन्यवाद!', thanksHigh: 'तुम्हाला आवडलं याचा आनंद आहे. पुन्हा नक्की या!',
+      thanksMid: 'प्रामाणिक अभिप्रायाबद्दल धन्यवाद — यामुळे आम्ही सुधारतो.',
+      thanksLow: 'आम्हाला माफ करा. मॅनेजर स्वतः तुमचा अभिप्राय पाहतील.',
+      google: 'Google वरही शेअर करा', googleHint: 'तुमचा रिव्ह्यू कॉपी झाला आहे — फक्त Google पेजवर पेस्ट करा.',
+      footer: 'लॉगिनची गरज नाही · तुमचा अभिप्राय थेट मालकाकडे जातो',
+      errRating: 'कृपया स्टार रेटिंग निवडा.', errText: 'कृपया काही शब्द निवडा किंवा लिहा.', errNet: 'पाठवता आलं नाही. कृपया पुन्हा प्रयत्न करा.',
+      aiBy: '✨ AI सूचना',
+    },
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const params = new URLSearchParams(location.search);
+  const state = {
+    lang: localStorage.getItem('fb_lang') || (navigator.language || '').slice(0, 2),
+    rating: 0, aspects: [], chosen: '', config: { aspects: [] }, reqId: 0,
+    table: (params.get('table') || params.get('t') || '').slice(0, 20),
+  };
+  if (!I18N[state.lang]) state.lang = 'en';
+  const T = () => I18N[state.lang];
+
+  // ----- stars -----
+  const STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg>';
+  for (let i = 1; i <= 5; i++) {
+    const b = document.createElement('button');
+    b.className = 'star'; b.type = 'button'; b.dataset.v = i;
+    b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', 'false');
+    b.innerHTML = STAR;
+    b.addEventListener('click', () => setRating(i));
+    $('stars').appendChild(b);
+  }
+  function paintStars() {
+    document.querySelectorAll('.star').forEach((b) => {
+      const v = +b.dataset.v;
+      b.classList.toggle('on', v <= state.rating);
+      b.setAttribute('aria-checked', String(v === state.rating));
+      b.setAttribute('aria-label', `${v} – ${T().labels[v]}`);
+    });
+    $('ratingLabel').textContent = state.rating ? T().labels[state.rating] : '';
+  }
+  function setRating(v) {
+    const first = !state.rating;
+    state.rating = v;
+    paintStars();
+    $('step2').classList.remove('hidden');
+    if (first) { $('step2').classList.add('fade'); setTimeout(() => $('step2').scrollIntoView({ behavior: 'smooth', block: 'start' }), 60); }
+    loadSuggestions();
+    validate();
+  }
+
+  // ----- aspect chips -----
+  function renderChips() {
+    $('chips').innerHTML = '';
+    for (const a of state.config.aspects) {
+      const c = document.createElement('button');
+      c.type = 'button'; c.className = 'chip';
+      c.textContent = T().aspectNames[a] || a;
+      c.setAttribute('aria-pressed', String(state.aspects.includes(a)));
+      c.addEventListener('click', () => {
+        state.aspects = state.aspects.includes(a) ? state.aspects.filter((x) => x !== a) : [...state.aspects, a];
+        c.setAttribute('aria-pressed', String(state.aspects.includes(a)));
+        clearTimeout(renderChips.t); renderChips.t = setTimeout(loadSuggestions, 350);
+      });
+      $('chips').appendChild(c);
+    }
+  }
+
+  // ----- suggestions -----
+  async function loadSuggestions() {
+    if (!state.rating) return;
+    const id = ++state.reqId;
+    $('suggestions').innerHTML = '<div class="sk"></div><div class="sk"></div><div class="sk"></div>';
+    $('aiTag').textContent = '';
+    try {
+      const qs = new URLSearchParams({ rating: state.rating, lang: state.lang, aspects: state.aspects.join(',') });
+      const r = await fetch('/api/suggestions?' + qs);
+      const data = await r.json();
+      if (id !== state.reqId) return; // a newer request superseded this one
+      if (!r.ok) throw new Error(data.error);
+      renderSuggestions(data.suggestions || []);
+      $('aiTag').textContent = data.source === 'ai' ? T().aiBy : '';
+    } catch {
+      if (id === state.reqId) $('suggestions').innerHTML = '';
+    }
+  }
+  function renderSuggestions(list) {
+    $('suggestions').innerHTML = '';
+    list.forEach((s) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'sug fade'; b.textContent = s;
+      b.setAttribute('aria-pressed', String(s === state.chosen));
+      b.addEventListener('click', () => {
+        state.chosen = s;
+        $('text').value = s;
+        document.querySelectorAll('.sug').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        onType();
+      });
+      $('suggestions').appendChild(b);
+    });
+  }
+
+  // ----- text + submit -----
+  function onType() { $('count').textContent = $('text').value.length; validate(); }
+  function validate() { $('submit').disabled = !(state.rating && $('text').value.trim().length >= 3); }
+  $('text').addEventListener('input', onType);
+  $('more').addEventListener('click', loadSuggestions);
+
+  $('submit').addEventListener('click', async () => {
+    const text = $('text').value.trim();
+    if (!state.rating) return ($('err').textContent = T().errRating);
+    if (text.length < 3) return ($('err').textContent = T().errText);
+    const source = !state.chosen ? 'custom' : text === state.chosen ? 'ai' : 'ai_edited';
+    $('submit').disabled = true; $('submit').textContent = T().sending; $('err').textContent = '';
+    try {
+      const r = await fetch('/api/feedback', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating: state.rating, text, source, table: state.table, orderId: $('orderId').value.trim() }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error || T().errNet);
+      showThanks(text);
+    } catch (e) {
+      $('err').textContent = e.message || T().errNet;
+      $('submit').textContent = T().submit; validate();
+    }
+  });
+
+  function showThanks(text) {
+    $('form').classList.add('hidden');
+    $('done').classList.remove('hidden'); $('done').classList.add('fade');
+    const r = state.rating;
+    $('doneIcon').textContent = r >= 4 ? '🎉' : r === 3 ? '🙏' : '💬';
+    $('t_thanksMsg').textContent = r >= 4 ? T().thanksHigh : r === 3 ? T().thanksMid : T().thanksLow;
+    // The Google option is offered to everyone, whatever the rating (Google's policy forbids
+    // showing it only to happy customers).
+    if (state.config.googleReviewUrl) {
+      $('googleBox').classList.remove('hidden');
+      $('googleBtn').onclick = async () => {
+        try { await navigator.clipboard.writeText(text); } catch {}
+        window.open(state.config.googleReviewUrl, '_blank', 'noopener');
+      };
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ----- language -----
+  function applyLang() {
+    const t = T();
+    document.documentElement.lang = state.lang;
+    document.querySelectorAll('.langs button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === state.lang)));
+    $('t_title').textContent = t.title; $('t_sub').textContent = t.sub;
+    $('t_aspects').innerHTML = `${t.aspects} <small>${t.aspectsHint}</small>`;
+    $('t_pick').innerHTML = `${t.pick} <small>${t.pickHint}</small>`;
+    $('more').textContent = t.more; $('t_your').textContent = t.your;
+    $('text').placeholder = t.placeholder; $('t_order').textContent = t.order; $('orderId').placeholder = t.orderPh;
+    $('submit').textContent = t.submit; $('t_thanks').textContent = t.thanks;
+    $('googleBtn').textContent = t.google; $('t_googleHint').textContent = t.googleHint; $('t_footer').textContent = t.footer;
+    $('tableTag').textContent = !state.table ? '' : /^\d+$/.test(state.table) ? `${t.table} ${state.table}` : state.table.charAt(0).toUpperCase() + state.table.slice(1);
+    paintStars(); renderChips();
+  }
+  document.querySelectorAll('.langs button').forEach((b) => b.addEventListener('click', () => {
+    state.lang = b.dataset.lang; localStorage.setItem('fb_lang', state.lang);
+    applyLang(); if (state.rating) loadSuggestions();
+  }));
+
+  // ----- boot -----
+  applyLang();
+  fetch('/api/config').then((r) => r.json()).then((c) => {
+    state.config = c;
+    $('brand').textContent = c.restaurantName;
+    document.title = `${c.restaurantName} · Feedback`;
+    renderChips();
+  }).catch(() => {});
+})();
+</script>
+</body>
+</html>
